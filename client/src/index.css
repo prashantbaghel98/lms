@@ -10,10 +10,19 @@
 }
 
 
+@layer base{
+  html{
+    scroll-behavior:smooth;
+  }
+}
+
+::-webkit-scrollbar{
+  display: none;
+}
+
+
 
 @layer components {
-  
-
   .text-heading {
     font-size: 42px;
     font-weight: 700;

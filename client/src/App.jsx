@@ -12,15 +12,16 @@ import AddCourse from './pages/educator/AddCourse'
 import MyCourse from './pages/educator/MyCourses'
 import StudentEnrolled from './pages/educator/StudentEnrolled'
 import Navbar from './components/students/Navbar'
+import Footer from './components/students/Footer'
 
 const App = () => {
 
-const isEducatorRoute = useMatch('/educator/*')
+  const isEducatorRoute = useMatch('/educator/*')
 
   return (
-    <div className='text-default min-h-screen bg-white'>
+    <div className='text-default  min-h-screen bg-white'>
       {!isEducatorRoute && <Navbar />}
-      
+
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path='/course-list' element={<CoursesList />} />
@@ -28,6 +29,7 @@ const isEducatorRoute = useMatch('/educator/*')
         <Route path='/course/:id' element={<CoursesDetails />} />
         <Route path='/player/:courseId' element={<Player />} />
         <Route path='/loading/:path' element={<Loading />} />
+        <Route path='/my-enrollments' element={<MyEnrollments />} />
 
 
         <Route path='/educator' element={<Educator />}>
@@ -38,6 +40,9 @@ const isEducatorRoute = useMatch('/educator/*')
         </Route>
       </Routes>
 
+
+
+      <Footer />
     </div>
   )
 }
