@@ -13,6 +13,8 @@ import MyCourse from './pages/educator/MyCourses'
 import StudentEnrolled from './pages/educator/StudentEnrolled'
 import Navbar from './components/students/Navbar'
 import Footer from './components/students/Footer'
+import 'quill/dist/quill.snow.css';
+
 
 const App = () => {
 
@@ -33,16 +35,12 @@ const App = () => {
 
 
         <Route path='/educator' element={<Educator />}>
-          <Route path='educator' element={<Dashboard />} />
+          <Route path='/educator' element={<Dashboard />} />
           <Route path='add-course' element={<AddCourse />} />
-          <Route path='my-course' element={<MyCourse />} />
+          <Route path='my-courses' element={<MyCourse />} />
           <Route path='student-enrolled' element={<StudentEnrolled />} />
         </Route>
       </Routes>
-
-
-
-      <Footer />
     </div>
   )
 }
