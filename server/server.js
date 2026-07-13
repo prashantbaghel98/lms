@@ -31,14 +31,14 @@ app.get('/',(req,res)=>{
 app.post('/clerk',express.json(),clerkWebhooks);
 
 
-// Port 
+// Local development server
+const PORT = process.env.PORT || 8080;
 
-const PORT = process.env.PORT 
-
-// Start Express server locally
 if (process.env.NODE_ENV !== "production") {
     app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
+        console.log(
+            `Server is running on port ${PORT}`
+        );
     });
 }
 
