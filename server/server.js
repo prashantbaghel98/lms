@@ -35,6 +35,12 @@ app.post('/clerk',express.json(),clerkWebhooks);
 
 const PORT = process.env.PORT 
 
-app.listen(PORT,()=>{
-    console.log(`Server is running on port ${PORT}`)
-})
+// Start Express server locally
+if (process.env.NODE_ENV !== "production") {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+}
+
+// Export Express app for Vercel
+export default app;
