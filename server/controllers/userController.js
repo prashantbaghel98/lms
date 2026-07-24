@@ -87,6 +87,7 @@ export const purchaseCourse = async (req, res) => {
 
         const strupeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
         const currency = process.env.CURRENCY.toLowerCase()
+        
 
         // Creating Line items to for stripe 
 
@@ -104,7 +105,7 @@ export const purchaseCourse = async (req, res) => {
         const session = await strupeInstance.checkout.sessions.create({
             success_url: `${origin}/loading/my-enrollments`,
             cancel_url: `${origin}/`,
-            line_items: line_items,
+            line_items: line_items, 
             mode: 'payment',
             metadata: {
                 purchaseId: newPurchase._id.toString()
