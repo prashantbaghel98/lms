@@ -5,8 +5,10 @@ import CourseCard from './CourseCard'
 
 const CoursesSection = () => {
 
-  const { allCourses } = useContext(AppContext)
+  const { allCourses} = useContext(AppContext)
 
+
+  
   return (
     <div className='max-w-l py-16 md:px-30 px-8'>
       <h2 className='text-3xl font-medium text-gray-800'>Learn from the best</h2>
@@ -17,7 +19,7 @@ const CoursesSection = () => {
         {allCourses.slice(0, 4).map((course, index) => <CourseCard key={index} course={course} />)}
       </div>
 
-      <Link to='/all-courses' onClick={() => scrollTo(0, 0)} className=' text-gray-500 border border-gray-500/30 px-10 py-3 rounded'>Show All Courses</Link>
+      <Link to='/course-list' onClick={() => scrollTo(0, 0)} className=' text-gray-500 border border-gray-500/30 px-10 py-3 rounded'>Show All Courses</Link>
     </div>
   )
 }

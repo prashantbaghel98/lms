@@ -2,55 +2,93 @@ import React, { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../../context/AppContext'
 import Loading from '../../components/students/Loading'
 import { assets, dummyDashboardData } from '../../assets/assets'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 
 const Dashboard = () => {
 
   const [dashboardData, setDashboardData] = useState(null)
-  const { currency } = useContext(AppContext)
+  const { currency, backend_url, getToken, isEducator } = useContext(AppContext)
 
   const fetchDashboardData = async () => {
-    setDashboardData(dummyDashboardData)
+    try {
+      const token = await getToken()
+      const { data } = await axios.get(backend_url + '/api/educator/dashboard', { headers: { Authorization: `Bearer ${token}` } })
+
+      if (data.success) {
+        setDashboardData(data.educatorDashboardData)
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
   }
 
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [])
+    if (isEducator) {
+      fetchDashboardData();
+    }
+  }, [isEducator])
 
 
 
   return dashboardData ? (
-    <div className='min-h-screen flex flex-col items-start justify-between gap-4 md:p-8 md:pb-0 p-4 pt--8 pb-0'>
+    <div className='min-h-screen flex flex-col items-start justify-between gap-4 md:p-8 md:pb-0 p-4 pt-8 pb-0'>
       <div className='space-y-5'>
-        <div className='flex flex-wrap gap-5 items-center'>
-          <div className='flex items-center gap-3 border border-blue-500 p-4 w-56 rounded-md'>
-            <img src={assets.patients_icon} alt="patient_icon" />
-            <div>
-              <p className='text-2xl font-medium text-gray-600'>{dashboardData.enrolledStudentsData.length}</p>
-              <p className='text-base text-gray-500'>Total Enrollements</p>
-            </div>
-          </div>
-        </div>
+     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        <div className='flex flex-wrap gap-5 items-center'>
-          <div className='flex items-center gap-3 border border-blue-500 p-4 w-56 rounded-md'>
-            <img src={assets.appointments_icon} alt="patient_icon" />
-            <div>
-              <p className='text-2xl font-medium text-gray-600'>{dashboardData.totalCourses}</p>
-              <p className='text-base text-gray-500'>Total Enrollements</p>
-            </div>
-          </div>
-        </div>
+  {/* Total Enrollments */}
+  <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6 flex items-center gap-4">
+    <div className="w-14 h-14 flex items-center justify-center rounded-full bg-blue-100">
+      <img src={assets.patients_icon} alt="Students" className="w-8 h-8" />
+    </div>
 
-        <div className='flex flex-wrap gap-5 items-center'>
-          <div className='flex items-center gap-3 border border-blue-500 p-4 w-56 rounded-md'>
-            <img src={assets.earning_icon} alt="earning_icon" />
-            <div>
-              <p className='text-2xl font-medium text-gray-600'>{currency}{dashboardData.totalEarnings}</p>
-              <p className='text-base text-gray-500'>Total Earning</p>
-            </div>
-          </div>
-        </div>
+    <div>
+      <h2 className="text-3xl font-bold text-gray-800">
+        {dashboardData.enrolledStudentsData.length}
+      </h2>
+      <p className="text-gray-500 font-medium">
+        Total Enrollments
+      </p>
+    </div>
+  </div>
+
+  {/* Total Courses */}
+  <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6 flex items-center gap-4">
+    <div className="w-14 h-14 flex items-center justify-center rounded-full bg-green-100">
+      <img src={assets.appointments_icon} alt="Courses" className="w-8 h-8" />
+    </div>
+
+    <div>
+      <h2 className="text-3xl font-bold text-gray-800">
+        {dashboardData.totalCourses}
+      </h2>
+      <p className="text-gray-500 font-medium">
+        Total Courses
+      </p>
+    </div>
+  </div>
+
+  {/* Total Earnings */}
+  <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6 flex items-center gap-4">
+    <div className="w-14 h-14 flex items-center justify-center rounded-full bg-yellow-100">
+      <img src={assets.earning_icon} alt="Earnings" className="w-8 h-8" />
+    </div>
+
+    <div>
+      <h2 className="text-3xl font-bold text-gray-800">
+        {currency}
+        {dashboardData.totalEarnings}
+      </h2>
+      <p className="text-gray-500 font-medium">
+        Total Earnings
+      </p>
+    </div>
+  </div>
+
+</div>
 
         <div>
           <h2 className='pb-4 text-lg font-medium'>Latest Enrollements</h2>
@@ -90,7 +128,6 @@ const Dashboard = () => {
 
           </div>
         </div>
-
 
       </div>
     </div>

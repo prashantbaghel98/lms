@@ -7,4 +7,6 @@ courseRouter.get('/all',getAllCourse)
 courseRouter.get('/:id',getCourseId)
 
 
+
+
 export default courseRouter;

@@ -39,4 +39,3 @@ res.json({success:true,courseData})
 }
 
 
-
