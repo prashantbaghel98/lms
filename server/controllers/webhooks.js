@@ -1,87 +1,69 @@
 import { Webhook } from "svix";
-import Stripe from "stripe";
-
 import User from "../models/user.js";
-import Course from "../models/course.js";
+import Stripe from "stripe";
 import { Purchase } from "../models/purchase.js";
+import Course from "../models/course.js";
 
-const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// ==========================
-// Clerk Webhook
-// ==========================
+// API controller fucntion to manage clerk user with database 
+
+
 export const clerkWebhooks = async (req, res) => {
   try {
-    const webhook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
+    const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET)
 
-    await webhook.verify(JSON.stringify(req.body), {
+    await whook.verify(JSON.stringify(req.body), {
       "svix-id": req.headers["svix-id"],
       "svix-timestamp": req.headers["svix-timestamp"],
-      "svix-signature": req.headers["svix-signature"],
-    });
+      "svix-signature": req.headers["svix-signature"]
+    })
 
-    const { type, data } = req.body;
+    const { data, type } = req.body
 
     switch (type) {
-      case "user.created": {
+      case 'user.created': {
         const userData = {
           _id: data.id,
-          email: data.email_addresses?.[0]?.email_address || "",
-          name: `${data.first_name || ""} ${data.last_name || ""}`.trim(),
-          imageUrl: data.image_url || "",
-        };
+          email: data.email_addresses[0].email_address,
+          name: data.first_name + " " + data.last_name,
+          imageUrl: data.image_url,
+        }
 
-        await User.create(userData);
-
-        return res.json({
-          success: true,
-          message: "User created",
-        });
+        await User.create(userData)
+        res.json({})
+        break;
       }
 
-      case "user.updated": {
+      case 'user.updated': {
         const userData = {
-          email: data.email_addresses?.[0]?.email_address || "",
-          name: `${data.first_name || ""} ${data.last_name || ""}`.trim(),
-          imageUrl: data.image_url || "",
-        };
-
-        await User.findByIdAndUpdate(data.id, userData);
-
-        return res.json({
-          success: true,
-          message: "User updated",
-        });
+          email: data.email_addresses[0].email_address,
+          name: data.first_name + "" + data.last_name,
+          imageUrl: data.image_url,
+        }
+        await User.findByIdAndUpdate(data.id, userData)
+        res.json({})
+        break;
       }
 
-      case "user.deleted": {
-        await User.findByIdAndDelete(data.id);
-
-        return res.json({
-          success: true,
-          message: "User deleted",
-        });
+      case 'user.deleted': {
+        await User.findByIdAndDelete(data.id)
+        res.json({})
+        break;
       }
+
 
       default:
-        return res.json({
-          success: true,
-          message: "Unhandled Clerk event",
-        });
+        break;
     }
   } catch (error) {
-    console.error("Clerk Webhook Error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.json({ success: false, message: error.message })
   }
-};
+}
 
-// ==========================
-// Stripe Webhook
-// ==========================
+
+
+const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
+
 export const stripeWebhooks = async (req, res) => {
   const signature = req.headers["stripe-signature"];
 
@@ -97,8 +79,7 @@ export const stripeWebhooks = async (req, res) => {
     console.log("========== STRIPE WEBHOOK ==========");
     console.log("Event:", event.type);
   } catch (error) {
-    console.error("Stripe Signature Error:", error.message);
-
+    console.log("Webhook Verification Failed:", error.message);
     return res.status(400).send(`Webhook Error: ${error.message}`);
   }
 
@@ -106,19 +87,19 @@ export const stripeWebhooks = async (req, res) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
-
-        console.log("Session ID:", session.id);
+        console.log("Session:", session.id);
         console.log("Metadata:", session.metadata);
+        console.log("Purchase ID:", session.metadata.purchaseId);
 
-        const purchaseId = session.metadata?.purchaseId;
+        const purchaseId = session.metadata.purchaseId;
 
         if (!purchaseId) {
-          console.log("Purchase ID missing");
+          console.log("Purchase ID not found in metadata");
           break;
         }
 
         const purchase = await Purchase.findById(purchaseId);
-
+        console.log("Purchase:", purchase);
         if (!purchase) {
           console.log("Purchase not found");
           break;
@@ -130,23 +111,20 @@ export const stripeWebhooks = async (req, res) => {
         }
 
         const user = await User.findById(purchase.userId);
+        console.log("User:", user);
         const course = await Course.findById(purchase.courseId);
-
+console.log("Course:", course);
         if (!user || !course) {
           console.log("User or Course not found");
           break;
         }
 
-        if (!course.enrolledStudents.includes(String(user._id))) {
-          course.enrolledStudents.push(String(user._id));
+        if (!course.enrolledStudents.includes(user._id)) {
+          course.enrolledStudents.push(user._id);
           await course.save();
         }
 
-        const alreadyEnrolled = user.enrolledCourses.some(
-          (id) => id.toString() === course._id.toString()
-        );
-
-        if (!alreadyEnrolled) {
+        if (!user.enrolledCourses.includes(course._id)) {
           user.enrolledCourses.push(course._id);
           await user.save();
         }
@@ -154,7 +132,7 @@ export const stripeWebhooks = async (req, res) => {
         purchase.status = "completed";
         await purchase.save();
 
-        console.log("Purchase Updated Successfully");
+        console.log("Payment Completed");
 
         break;
       }
@@ -162,7 +140,7 @@ export const stripeWebhooks = async (req, res) => {
       case "checkout.session.expired": {
         const session = event.data.object;
 
-        const purchaseId = session.metadata?.purchaseId;
+        const purchaseId = session.metadata.purchaseId;
 
         if (!purchaseId) break;
 
@@ -173,7 +151,7 @@ export const stripeWebhooks = async (req, res) => {
           await purchase.save();
         }
 
-        console.log("Checkout Session Expired");
+        console.log("Payment Failed");
 
         break;
       }
@@ -186,7 +164,7 @@ export const stripeWebhooks = async (req, res) => {
       received: true,
     });
   } catch (error) {
-    console.error("Stripe Webhook Error:", error);
+        console.error(error.stack);
 
     return res.status(500).json({
       success: false,
@@ -194,3 +172,14 @@ export const stripeWebhooks = async (req, res) => {
     });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
