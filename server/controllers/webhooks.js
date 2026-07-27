@@ -70,7 +70,7 @@ export const stripeWebhooks = async (req, res) => {
   let event;
 
   try {
-    event = Stripe.webhooks.constructEvent(
+    event = stripeInstance.webhooks.constructEvent(
       req.body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET
@@ -85,7 +85,7 @@ export const stripeWebhooks = async (req, res) => {
   switch (event.type) {
     case 'payment_intent.succeeded': {
       const paymentIntent = event.data.object;
-      const paymentId = paymentIntent.id;
+      const paymentIntentId = paymentIntent.id;
 
       const session = await stripeInstance.checkout.sessions.list({
         payment_intent: paymentIntentId
@@ -103,13 +103,13 @@ export const stripeWebhooks = async (req, res) => {
       userData.enrolledCourses.push(courseData)
       await userData.save();
 
-      purchaseData.status = 'Completed'
+      purchaseData.status = 'completed'
       await purchaseData.save()
       break;
     }
     case 'payment_intent.payment_failed':
       const paymentIntent = event.data.object;
-      const paymentId = paymentIntent.id;
+      const paymentId = paymentIntentId;
 
       const session = await stripeInstance.checkout.sessions.list({
         payment_intent: paymentIntentId
@@ -127,7 +127,7 @@ export const stripeWebhooks = async (req, res) => {
   }
 
   // Return a response to acknowledge receipt of the event
-  response.json({ received: true });
+  res.json({ received: true });
 
 
 
